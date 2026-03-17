@@ -62,6 +62,8 @@ Persistence Layer  → Spring Data JDBC repositories, Flyway migrations
 
 This is standard Spring Boot convention with one element borrowed from Hexagonal architecture: the `TorrentClient` interface at the client layer boundary. This gives us the adapter point for future torrent client support without the indirection cost of full ports-and-adapters.
 
+**Threading model:** The API layer uses Spring WebMVC (blocking servlet threads) — sufficient for Nisaba's low request volume from the `*arr` stack. The sync loop and boot reconciliation run on a dedicated `CoroutineScope` (backed by `Dispatchers.IO`) since they use `suspend` functions and Arrow-kt's `parTraverse` for concurrent node polling. The `@Scheduled` method bridges into the coroutine world via `runBlocking` on its scheduler thread.
+
 **Architecture diagram:** `diagrams/06-software-architecture.svg`
 
 ---
@@ -217,6 +219,7 @@ interface TorrentClient {
         paused: Boolean = false
     ): Either<NisabaError, AddResult>
     suspend fun pauseTorrent(node: NodeEntity, infohash: String): Either<NisabaError, Unit>
+    suspend fun resumeTorrent(node: NodeEntity, infohash: String): Either<NisabaError, Unit>
     suspend fun removeTorrent(
         node: NodeEntity, infohash: String, deleteFiles: Boolean
     ): Either<NisabaError, Unit>
@@ -296,7 +299,7 @@ private val allowedTransitions: Map<TorrentState, Set<TorrentState>> = mapOf(
     QUEUED       to setOf(ASSIGNING),
     ASSIGNING    to setOf(DOWNLOADING, QUEUED),       // QUEUED = node rejected
     DOWNLOADING  to setOf(STALLED, PAUSED, DONE),
-    STALLED      to setOf(REASSIGNING, QUEUED),       // QUEUED = manual retry
+    STALLED      to setOf(REASSIGNING, DOWNLOADING, QUEUED),  // DOWNLOADING = self-recovery, QUEUED = manual retry
     REASSIGNING  to setOf(ASSIGNING, FAILED),         // FAILED = no healthy nodes
     PAUSED       to setOf(DOWNLOADING, QUEUED),       // DOWNLOADING = resume
     FAILED       to setOf(QUEUED),                    // manual retry only
@@ -364,11 +367,11 @@ For each healthy node, poll `GET /api/v2/transfer/info` for `dl_info_speed`. Wri
 
 ### Job 2 — Torrent state sync
 
-For each healthy node, poll `GET /api/v2/torrents/info` for all torrents on that node. For each torrent in our registry with state `DOWNLOADING`: if found on node, update `progress_pct`, `pieces_bitmap`, `last_synced_at`. If progress = 100%, transition to `DONE`. If not found on assigned node, transition to `STALLED`.
+For each healthy node, poll `GET /api/v2/torrents/info` for all torrents on that node. Build a map of `(infohash, nodeId) -> TorrentStatus`. For each torrent in our registry with state `DOWNLOADING`: match by infohash AND `assigned_node_id` (not just infohash — a torrent may exist as a leftover on a previously assigned node). If found on the assigned node, update `progress_pct`, `pieces_bitmap`, `last_synced_at`. If progress = 100%, transition to `DONE`. If not found on the assigned node, transition to `STALLED`.
 
 ### Job 3 — Stall detection
 
-For each torrent in state `DOWNLOADING`: if speed = 0 for 2 consecutive cycles, transition to `STALLED` and trigger reassignment. For each torrent in state `ASSIGNING`: if stuck for >90s, transition back to `QUEUED`.
+For each torrent in state `DOWNLOADING`: if speed = 0 for 2 consecutive cycles, transition to `STALLED` and trigger reassignment. For each torrent in state `STALLED` (not yet reassigned): if the sync loop detects the torrent is now making progress on its assigned node (speed > 0), transition back to `DOWNLOADING` (self-recovery — the swarm came back). For each torrent in state `ASSIGNING`: if stuck for >90s, transition back to `QUEUED`.
 
 ### Implementation
 
@@ -547,12 +550,14 @@ nodes:
     username: admin
     password: secret
     label: "NFS Host - Primary"
+    client-type: qbittorrent    # default, can be omitted for v1
 
   - id: node-b
     url: http://node-b.mesh:8080
     username: admin
     password: secret
     label: "Edge Node B"
+    client-type: qbittorrent
 ```
 
 Loaded by `NodeConfig` at startup, synced into the `nodes` DB table by `ReconciliationService`.
@@ -580,6 +585,7 @@ Loaded by `NodeConfig` at startup, synced into the `nodes` DB table by `Reconcil
 | `/api/v2/torrents/setShareLimits` | POST | Set ratio/seeding limits |
 | `/api/v2/torrents/topPrio` | POST | Move to top of queue |
 | `/api/v2/torrents/setForceStart` | POST | Force start a torrent |
+| `/api/v2/sync/maindata` | GET | Incremental state sync (primary `*arr` polling endpoint) |
 
 ### State mapping
 
@@ -603,9 +609,10 @@ object StateMapper {
 - **`POST /api/v2/auth/login`** — validates against `nisaba.auth.username/password`, returns `"Ok."` with `SID` cookie on success, `"Fails."` otherwise.
 - **`GET /api/v2/torrents/info`** — reads all torrents from the registry (not from nodes), maps each to qBit JSON format using `StateMapper`. Optional `category` query param filters results.
 - **`POST /api/v2/torrents/add`** — extracts infohash from magnet URI, resolves save path from category config, calls `RegistryService.addTorrent()`, returns `"Ok."` or `"Fails."`.
-- **`POST /api/v2/torrents/delete`** — removes registry record and calls `removeTorrent` on the assigned node. Bypasses the state machine (deletion is not a state transition).
+- **`POST /api/v2/torrents/delete`** — calls `removeTorrent` on the assigned node, then removes the registry record. Bypasses the state machine (deletion is not a state transition). The `state_transitions` FK uses `ON DELETE CASCADE` so audit history is preserved for the lifetime of the torrent but cleaned up on delete. If audit preservation is needed long-term, this can be changed to `ON DELETE SET NULL` on `infohash`.
 - **`GET /api/v2/app/preferences`** — returns static/configured values that the `*arr` stack checks (save_path, ratio settings, DHT enabled, queueing disabled).
 - **`GET /api/v2/torrents/categories`** — returns the categories map from `application.yml`.
+- **`GET /api/v2/sync/maindata`** — the primary endpoint `*arr` clients use for polling state changes. Returns a JSON object with `rid` (response ID for incremental sync), `torrents` (map of hash → torrent info for changed torrents), and `full_update` flag. Nisaba tracks a monotonically increasing `rid` counter. On each call, returns torrents whose `last_synced_at` changed since the caller's last `rid`. If `rid=0` or unknown, returns full state.
 
 ### Endpoints called on downstream nodes
 
@@ -618,6 +625,7 @@ object StateMapper {
 | `/api/v2/torrents/add` | Add torrent to a node |
 | `/api/v2/torrents/delete` | Remove torrent from a node |
 | `/api/v2/torrents/pause` | Pause torrent before reassignment |
+| `/api/v2/torrents/resume` | Resume a paused torrent |
 | `/api/v2/torrents/properties` | Get detailed torrent state |
 
 ---
