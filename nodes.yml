@@ -1,0 +1,7 @@
+nodes:
+  - id: node-a
+    url: http://localhost:8080
+    username: admin
+    password: adminadmin
+    label: "Local Dev Node"
+    client-type: qbittorrent

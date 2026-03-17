@@ -1,0 +1,26 @@
+nisaba:
+  auth:
+    username: admin
+    password: changeme
+  nodes-file: nodes.yml
+  poll:
+    interval-seconds: 30
+    stall-threshold-cycles: 2
+    assigning-timeout-seconds: 90
+  ema:
+    alpha: 0.3
+    cold-start-weight: 0.5
+  categories:
+    tv-sonarr: /data/media/tv
+    radarr: /data/media/movies
+    lidarr: /data/media/music
+    default: /data/media/misc
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/nisaba
+    username: postgres
+    password: postgres
+  flyway:
+    enabled: true
+    locations: classpath:db/migration

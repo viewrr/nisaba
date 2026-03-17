@@ -1,1 +1,6 @@
 .superpowers/
+.gradle/
+build/
+.idea/
+*.iml
+postgres_data/

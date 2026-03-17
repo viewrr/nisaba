@@ -1,0 +1,16 @@
+nisaba:
+  auth:
+    username: test
+    password: test
+  nodes-file: classpath:test-nodes.yml
+  poll:
+    interval-seconds: 30
+    stall-threshold-cycles: 2
+    assigning-timeout-seconds: 5
+  ema:
+    alpha: 0.3
+    cold-start-weight: 0.5
+  categories:
+    tv-sonarr: /data/media/tv
+    radarr: /data/media/movies
+    default: /data/media/misc
