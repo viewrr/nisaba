@@ -44,7 +44,7 @@ dependencies {
 
 	// Jackson / YAML parsing for nodes.yml
 	implementation("tools.jackson.module:jackson-module-kotlin")
-	implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
+	implementation("tools.jackson.dataformat:jackson-dataformat-yaml")
 
 	// Database
 	runtimeOnly("org.postgresql:postgresql")
