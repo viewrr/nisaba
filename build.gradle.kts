@@ -47,7 +47,7 @@ dependencies {
 	implementation("tools.jackson.dataformat:jackson-dataformat-yaml")
 
 	// Database
-	runtimeOnly("org.postgresql:postgresql")
+	implementation("org.postgresql:postgresql")
 
 	// Configuration processor
 	annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
