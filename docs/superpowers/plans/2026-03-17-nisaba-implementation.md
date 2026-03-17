@@ -1750,8 +1750,13 @@ class BandwidthServiceTest {
 
     private val nodeRepo = mockk<NodeRepository>(relaxed = true)
     private val sampleRepo = mockk<BandwidthSampleRepository>(relaxed = true)
-    private val emaProperties = NisabaProperties.EmaProperties(alpha = 0.3f, coldStartWeight = 0.5f)
-    private val service = BandwidthService(nodeRepo, sampleRepo, emaProperties)
+    private val properties = NisabaProperties(
+        auth = NisabaProperties.AuthProperties("test", "test"),
+        poll = NisabaProperties.PollProperties(),
+        ema = NisabaProperties.EmaProperties(alpha = 0.3f, coldStartWeight = 0.5f),
+        categories = mapOf("default" to "/data/media/misc")
+    )
+    private val service = BandwidthService(nodeRepo, sampleRepo, properties)
 
     @Test
     fun `EMA calculation with alpha 0_3`() {
@@ -1795,7 +1800,7 @@ import java.time.Instant
 class BandwidthService(
     private val nodeRepository: NodeRepository,
     private val sampleRepository: BandwidthSampleRepository,
-    private val emaProperties: NisabaProperties.EmaProperties
+    private val properties: NisabaProperties
 ) {
     companion object {
         private val logger = LoggerFactory.getLogger(BandwidthService::class.java)
@@ -1810,8 +1815,9 @@ class BandwidthService(
 
         // Calculate new EMA weight
         val node = nodeRepository.findById(nodeId).orElse(null) ?: return
+        val alpha = properties.ema.alpha
         val normalizedSpeed = (speedBps.toFloat() / NORMALIZATION_SPEED_BPS).coerceIn(0f, 1f)
-        val newWeight = (emaProperties.alpha * normalizedSpeed + (1 - emaProperties.alpha) * node.emaWeight)
+        val newWeight = (alpha * normalizedSpeed + (1 - alpha) * node.emaWeight)
             .coerceIn(0f, 1f)
 
         nodeRepository.updateEmaWeight(nodeId, newWeight, speedBps)
@@ -1857,6 +1863,7 @@ import com.nisaba.client.TorrentClientFactory
 import com.nisaba.error.NisabaError
 import com.nisaba.persistence.entity.TorrentEntity
 import com.nisaba.persistence.entity.TorrentState.*
+import com.nisaba.persistence.repository.NodeRepository
 import com.nisaba.persistence.repository.TorrentRepository
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -1864,6 +1871,7 @@ import org.springframework.stereotype.Service
 @Service
 class RegistryService(
     private val torrentRepository: TorrentRepository,
+    private val nodeRepository: NodeRepository,
     private val routerService: RouterService,
     private val stateMachine: StateMachine,
     private val clientFactory: TorrentClientFactory
@@ -1930,8 +1938,12 @@ class RegistryService(
 
         // Remove from assigned node if present
         if (torrent.assignedNodeId != null) {
-            val node = com.nisaba.persistence.repository.NodeRepository::class // placeholder
-            // The node lookup and removal happens via the client
+            val node = nodeRepository.findById(torrent.assignedNodeId).orElse(null)
+            if (node != null) {
+                val client = clientFactory.clientFor(node)
+                client.removeTorrent(node, infohash, deleteFiles)
+                    .onLeft { logger.warn("Failed to remove $infohash from ${node.nodeId}: $it") }
+            }
         }
 
         torrentRepository.deleteById(infohash)
@@ -2048,6 +2060,7 @@ git commit -m "feat: add RegistryService (add/remove) and ReassignmentService (f
 package com.nisaba.service
 
 import arrow.core.raise.either
+import arrow.fx.coroutines.parTraverse
 import com.nisaba.client.TorrentClientFactory
 import com.nisaba.client.dto.TorrentStatus
 import com.nisaba.client.dto.TransferInfo
@@ -2065,6 +2078,7 @@ import org.springframework.stereotype.Service
 import java.time.Duration
 import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.TimeUnit
 
 data class NodeSnapshot(
     val node: NodeEntity,
@@ -2088,7 +2102,7 @@ class SyncService(
 
     private val stallCounters = ConcurrentHashMap<String, Int>()
 
-    @Scheduled(fixedRateString = "\${nisaba.poll.interval-seconds:30}000")
+    @Scheduled(fixedRate = 30, timeUnit = TimeUnit.SECONDS)
     fun scheduledSync() = runBlocking(Dispatchers.IO) {
         syncLoop()
     }
@@ -2100,20 +2114,22 @@ class SyncService(
             return
         }
 
-        // Poll all nodes
-        val snapshots = mutableListOf<NodeSnapshot>()
-        for (node in healthyNodes) {
+        // Poll all nodes in parallel using Arrow parTraverse
+        val snapshots = healthyNodes.parTraverse { node ->
             val client = clientFactory.clientFor(node)
-            val speedResult = client.getTransferSpeed(node)
-            val torrentsResult = client.listTorrents(node)
-
-            if (speedResult.isRight() && torrentsResult.isRight()) {
-                snapshots.add(NodeSnapshot(node, speedResult.getOrNull()!!, torrentsResult.getOrNull()!!))
-                bandwidthService.recordSampleAndUpdateEma(node.nodeId, speedResult.getOrNull()!!.downloadSpeedBps)
-            } else {
+            either {
+                val speed = client.getTransferSpeed(node).bind()
+                val torrents = client.listTorrents(node).bind()
+                NodeSnapshot(node, speed, torrents)
+            }.onLeft {
                 logger.warn("Node ${node.nodeId} unreachable during sync, marking unhealthy")
                 nodeRepository.markUnhealthy(node.nodeId)
-            }
+            }.getOrNull()
+        }.filterNotNull()
+
+        // Update bandwidth EMA for all reachable nodes
+        snapshots.forEach { snap ->
+            bandwidthService.recordSampleAndUpdateEma(snap.node.nodeId, snap.speed.downloadSpeedBps)
         }
 
         // Build lookup: (infohash, nodeId) -> TorrentStatus
@@ -2271,10 +2287,11 @@ class BootGate : WebMvcConfigurer {
 // src/main/kotlin/com/nisaba/service/ReconciliationService.kt
 package com.nisaba.service
 
+import arrow.fx.coroutines.parTraverse
 import com.nisaba.client.TorrentClientFactory
 import com.nisaba.client.dto.TorrentStatus
 import com.nisaba.config.BootGate
-import com.nisaba.config.NodeConfig.NodeDefinition
+import com.nisaba.config.NodeDefinition
 import com.nisaba.persistence.entity.NodeEntity
 import com.nisaba.persistence.entity.TorrentState.*
 import com.nisaba.persistence.repository.NodeRepository
@@ -2313,27 +2330,27 @@ class ReconciliationService(
         // Sync node definitions from nodes.yml into DB
         syncNodeDefinitions()
 
-        // Phase 2 — Probe all nodes
+        // Phase 2 — Probe all nodes in parallel
         val nodes = nodeRepository.findAll().toList()
-        val healthyNodes = mutableListOf<NodeEntity>()
-
-        for (node in nodes) {
+        val healthyNodes = nodes.parTraverse { node ->
             val client = clientFactory.clientFor(node)
             client.probe(node).fold(
                 ifLeft = {
                     nodeRepository.markUnhealthy(node.nodeId)
                     logger.warn("Node ${node.nodeId} unreachable: $it")
+                    null
                 },
                 ifRight = { health ->
                     if (health.healthy) {
                         nodeRepository.markHealthy(node.nodeId)
-                        healthyNodes.add(node)
+                        node
                     } else {
                         nodeRepository.markUnhealthy(node.nodeId)
+                        null
                     }
                 }
             )
-        }
+        }.filterNotNull()
 
         if (healthyNodes.isEmpty()) {
             logger.error("Phase 2: No healthy nodes. Waiting 15s and retrying...")
@@ -2342,17 +2359,19 @@ class ReconciliationService(
         }
         logger.info("Phase 2: ${healthyNodes.size}/${nodes.size} nodes healthy")
 
-        // Phase 3 — Fetch live torrent state
-        val liveState = mutableMapOf<String, Pair<String, TorrentStatus>>()
-        for (node in healthyNodes) {
+        // Phase 3 — Fetch live torrent state in parallel
+        val liveState = healthyNodes.parTraverse { node ->
             val client = clientFactory.clientFor(node)
             client.listTorrents(node).fold(
-                ifLeft = { logger.warn("Failed to list torrents on ${node.nodeId}") },
+                ifLeft = {
+                    logger.warn("Failed to list torrents on ${node.nodeId}")
+                    emptyList()
+                },
                 ifRight = { torrents ->
-                    torrents.forEach { t -> liveState[t.infohash] = node.nodeId to t }
+                    torrents.map { t -> t.infohash to (node.nodeId to t) }
                 }
             )
-        }
+        }.flatten().toMap()
         logger.info("Phase 3: Found ${liveState.size} live torrents across nodes")
 
         // Phase 4 — Reconcile
@@ -2697,19 +2716,32 @@ import com.nisaba.persistence.repository.TorrentRepository
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
 
 @RestController
 class SyncController(private val torrentRepository: TorrentRepository) {
 
     private val ridCounter = AtomicLong(0)
+    // Track which rid each client last saw — maps rid -> timestamp
+    private val ridTimestamps = ConcurrentHashMap<Long, java.time.Instant>()
 
     @GetMapping("/api/v2/sync/maindata")
     fun maindata(@RequestParam(defaultValue = "0") rid: Long): QBitSyncMaindata {
         val currentRid = ridCounter.incrementAndGet()
-        val fullUpdate = rid == 0L
+        val now = java.time.Instant.now()
+        val fullUpdate = rid == 0L || !ridTimestamps.containsKey(rid)
 
-        val torrents = torrentRepository.findAll().toList()
+        val torrents = if (fullUpdate) {
+            torrentRepository.findAll().toList()
+        } else {
+            // Incremental: only return torrents changed since the caller's last rid
+            val since = ridTimestamps[rid] ?: java.time.Instant.EPOCH
+            torrentRepository.findAll().toList().filter { t ->
+                t.lastSyncedAt?.isAfter(since) == true || t.createdAt.isAfter(since)
+            }
+        }
+
         val torrentMap = torrents.associate { t ->
             t.infohash to QBitTorrentInfo(
                 hash = t.infohash,
@@ -2724,6 +2756,13 @@ class SyncController(private val torrentRepository: TorrentRepository) {
                 ratio = t.ratio ?: 0f,
                 seedingTime = t.seedingTime
             )
+        }
+
+        // Record this rid's timestamp for future incremental queries
+        ridTimestamps[currentRid] = now
+        // Clean old rids (keep last 100)
+        if (ridTimestamps.size > 100) {
+            ridTimestamps.keys.sorted().take(ridTimestamps.size - 100).forEach { ridTimestamps.remove(it) }
         }
 
         return QBitSyncMaindata(
@@ -2752,7 +2791,10 @@ import org.junit.jupiter.api.Test
 class AuthControllerTest {
 
     private val properties = NisabaProperties(
-        auth = NisabaProperties.AuthProperties("admin", "secret")
+        auth = NisabaProperties.AuthProperties("admin", "secret"),
+        poll = NisabaProperties.PollProperties(),
+        ema = NisabaProperties.EmaProperties(),
+        categories = mapOf("default" to "/data/media/misc")
     )
     private val sessionStore = SessionStore()
     private val controller = AuthController(properties, sessionStore)
