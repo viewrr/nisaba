@@ -1,0 +1,213 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" font-family="Inter, -apple-system, sans-serif">
+  <defs>
+    <filter id="shadow" x="-2%" y="-2%" width="104%" height="104%">
+      <feDropShadow dx="1" dy="2" stdDeviation="3" flood-opacity="0.1"/>
+    </filter>
+    <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#666"/>
+    </marker>
+    <marker id="arrow-blue" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#1976D2"/>
+    </marker>
+    <marker id="arrow-green" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#388E3C"/>
+    </marker>
+    <marker id="arrow-orange" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#E65100"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="900" fill="#FAFBFC"/>
+
+  <!-- Title -->
+  <text x="600" y="35" text-anchor="middle" font-size="20" font-weight="700" fill="#1a1a2e">Nisaba Software Architecture</text>
+  <text x="600" y="55" text-anchor="middle" font-size="12" fill="#888">Layered Architecture with TorrentClient Adapter Boundary</text>
+
+  <!-- External actors -->
+  <!-- *arr Stack -->
+  <rect x="30" y="80" width="140" height="60" rx="8" fill="#ECEFF1" stroke="#90A4AE" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="100" y="106" text-anchor="middle" font-size="11" font-weight="600" fill="#455A64">*arr Stack</text>
+  <text x="100" y="122" text-anchor="middle" font-size="9" fill="#78909C">Sonarr / Radarr / Lidarr</text>
+
+  <!-- Nodes -->
+  <rect x="1030" y="80" width="140" height="60" rx="8" fill="#ECEFF1" stroke="#90A4AE" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="1100" y="106" text-anchor="middle" font-size="11" font-weight="600" fill="#455A64">qBittorrent Nodes</text>
+  <text x="1100" y="122" text-anchor="middle" font-size="9" fill="#78909C">Node A / Node B / ...</text>
+
+  <!-- PostgreSQL -->
+  <rect x="530" y="810" width="140" height="55" rx="8" fill="#ECEFF1" stroke="#90A4AE" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="600" y="834" text-anchor="middle" font-size="11" font-weight="600" fill="#455A64">PostgreSQL</text>
+  <text x="600" y="850" text-anchor="middle" font-size="9" fill="#78909C">+ TimescaleDB</text>
+
+  <!-- ============ NISABA BOX ============ -->
+  <rect x="200" y="155" width="800" height="630" rx="12" fill="none" stroke="#B0BEC5" stroke-width="2" stroke-dasharray="6,3"/>
+  <text x="210" y="175" font-size="13" font-weight="700" fill="#546E7A">NISABA</text>
+
+  <!-- ====== API LAYER ====== -->
+  <rect x="220" y="185" width="760" height="120" rx="8" fill="#E3F2FD" stroke="#90CAF9" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="240" y="205" font-size="12" font-weight="700" fill="#1565C0">API LAYER</text>
+  <text x="240" y="218" font-size="9" fill="#1976D2">qBittorrent-compatible REST surface</text>
+
+  <!-- API Components -->
+  <rect x="240" y="228" width="130" height="55" rx="6" fill="#BBDEFB" stroke="#64B5F6" stroke-width="1"/>
+  <text x="305" y="249" text-anchor="middle" font-size="10" font-weight="600" fill="#1565C0">AuthController</text>
+  <text x="305" y="262" text-anchor="middle" font-size="8" fill="#1976D2">/api/v2/auth/login</text>
+  <text x="305" y="274" text-anchor="middle" font-size="8" fill="#1976D2">SID cookie mgmt</text>
+
+  <rect x="385" y="228" width="150" height="55" rx="6" fill="#BBDEFB" stroke="#64B5F6" stroke-width="1"/>
+  <text x="460" y="249" text-anchor="middle" font-size="10" font-weight="600" fill="#1565C0">TorrentController</text>
+  <text x="460" y="262" text-anchor="middle" font-size="8" fill="#1976D2">/api/v2/torrents/*</text>
+  <text x="460" y="274" text-anchor="middle" font-size="8" fill="#1976D2">add, info, delete, files...</text>
+
+  <rect x="550" y="228" width="130" height="55" rx="6" fill="#BBDEFB" stroke="#64B5F6" stroke-width="1"/>
+  <text x="615" y="249" text-anchor="middle" font-size="10" font-weight="600" fill="#1565C0">AppController</text>
+  <text x="615" y="262" text-anchor="middle" font-size="8" fill="#1976D2">/api/v2/app/*</text>
+  <text x="615" y="274" text-anchor="middle" font-size="8" fill="#1976D2">version, preferences</text>
+
+  <rect x="695" y="228" width="130" height="55" rx="6" fill="#BBDEFB" stroke="#64B5F6" stroke-width="1"/>
+  <text x="760" y="249" text-anchor="middle" font-size="10" font-weight="600" fill="#1565C0">CategoryController</text>
+  <text x="760" y="262" text-anchor="middle" font-size="8" fill="#1976D2">/api/v2/torrents/</text>
+  <text x="760" y="274" text-anchor="middle" font-size="8" fill="#1976D2">categories, setCategory</text>
+
+  <rect x="840" y="228" width="120" height="55" rx="6" fill="#FFF9C4" stroke="#FFF176" stroke-width="1"/>
+  <text x="900" y="249" text-anchor="middle" font-size="10" font-weight="600" fill="#F57F17">StateMapper</text>
+  <text x="900" y="262" text-anchor="middle" font-size="8" fill="#F9A825">Internal state</text>
+  <text x="900" y="274" text-anchor="middle" font-size="8" fill="#F9A825">--> qBit state string</text>
+
+  <!-- ====== SERVICE LAYER ====== -->
+  <rect x="220" y="320" width="760" height="160" rx="8" fill="#E8F5E9" stroke="#A5D6A7" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="240" y="340" font-size="12" font-weight="700" fill="#2E7D32">SERVICE LAYER</text>
+  <text x="240" y="353" font-size="9" fill="#388E3C">Business logic + Arrow-kt Either&lt;NisabaError, T&gt;</text>
+
+  <!-- Service Components Row 1 -->
+  <rect x="240" y="363" width="145" height="48" rx="6" fill="#C8E6C9" stroke="#81C784" stroke-width="1"/>
+  <text x="312" y="383" text-anchor="middle" font-size="10" font-weight="600" fill="#2E7D32">RegistryService</text>
+  <text x="312" y="396" text-anchor="middle" font-size="8" fill="#388E3C">CRUD, dedup, state mgmt</text>
+
+  <rect x="400" y="363" width="145" height="48" rx="6" fill="#C8E6C9" stroke="#81C784" stroke-width="1"/>
+  <text x="472" y="383" text-anchor="middle" font-size="10" font-weight="600" fill="#2E7D32">RouterService</text>
+  <text x="472" y="396" text-anchor="middle" font-size="8" fill="#388E3C">EMA weighting, node select</text>
+
+  <rect x="560" y="363" width="145" height="48" rx="6" fill="#C8E6C9" stroke="#81C784" stroke-width="1"/>
+  <text x="632" y="383" text-anchor="middle" font-size="10" font-weight="600" fill="#2E7D32">SyncService</text>
+  <text x="632" y="396" text-anchor="middle" font-size="8" fill="#388E3C">30s poll, stall detection</text>
+
+  <rect x="720" y="363" width="145" height="48" rx="6" fill="#C8E6C9" stroke="#81C784" stroke-width="1"/>
+  <text x="792" y="383" text-anchor="middle" font-size="10" font-weight="600" fill="#2E7D32">ReassignmentService</text>
+  <text x="792" y="396" text-anchor="middle" font-size="8" fill="#388E3C">Pause old, re-add new</text>
+
+  <!-- Service Components Row 2 -->
+  <rect x="240" y="423" width="145" height="48" rx="6" fill="#C8E6C9" stroke="#81C784" stroke-width="1"/>
+  <text x="312" y="443" text-anchor="middle" font-size="10" font-weight="600" fill="#2E7D32">ReconciliationService</text>
+  <text x="312" y="456" text-anchor="middle" font-size="8" fill="#388E3C">Boot phases 2-4, recovery</text>
+
+  <rect x="400" y="423" width="145" height="48" rx="6" fill="#C8E6C9" stroke="#81C784" stroke-width="1"/>
+  <text x="472" y="443" text-anchor="middle" font-size="10" font-weight="600" fill="#2E7D32">BandwidthService</text>
+  <text x="472" y="456" text-anchor="middle" font-size="8" fill="#388E3C">EMA calc, sample writes</text>
+
+  <rect x="560" y="423" width="200" height="48" rx="6" fill="#DCEDC8" stroke="#AED581" stroke-width="1.5"/>
+  <text x="660" y="443" text-anchor="middle" font-size="10" font-weight="700" fill="#33691E">StateMachine</text>
+  <text x="660" y="456" text-anchor="middle" font-size="8" fill="#558B2F">Validates transitions + audit log</text>
+
+  <!-- ====== CLIENT LAYER ====== -->
+  <rect x="220" y="500" width="760" height="115" rx="8" fill="#FFF3E0" stroke="#FFCC80" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="240" y="520" font-size="12" font-weight="700" fill="#E65100">CLIENT LAYER</text>
+  <text x="240" y="533" font-size="9" fill="#EF6C00">Outbound to torrent nodes -- adapter boundary</text>
+
+  <!-- Interface -->
+  <rect x="240" y="543" width="200" height="55" rx="6" fill="#FFE0B2" stroke="#FFB74D" stroke-width="1.5" stroke-dasharray="4,2"/>
+  <text x="340" y="563" text-anchor="middle" font-size="10" font-weight="700" fill="#E65100">TorrentClient</text>
+  <text x="340" y="576" text-anchor="middle" font-size="8" fill="#EF6C00" font-style="italic">interface</text>
+  <text x="340" y="588" text-anchor="middle" font-size="8" fill="#EF6C00">probe, add, pause, list, speed</text>
+
+  <!-- qBit Adapter -->
+  <rect x="480" y="543" width="200" height="55" rx="6" fill="#FFE0B2" stroke="#FFB74D" stroke-width="1"/>
+  <text x="580" y="563" text-anchor="middle" font-size="10" font-weight="600" fill="#E65100">QBittorrentClient</text>
+  <text x="580" y="576" text-anchor="middle" font-size="8" fill="#EF6C00">implements TorrentClient</text>
+  <text x="580" y="588" text-anchor="middle" font-size="8" fill="#EF6C00">WebClient + SID auth</text>
+
+  <!-- Future adapter -->
+  <rect x="720" y="543" width="200" height="55" rx="6" fill="#FFF3E0" stroke="#FFCC80" stroke-width="1" stroke-dasharray="4,2" opacity="0.5"/>
+  <text x="820" y="563" text-anchor="middle" font-size="10" font-weight="600" fill="#E65100" opacity="0.5">TransmissionClient</text>
+  <text x="820" y="576" text-anchor="middle" font-size="8" fill="#EF6C00" opacity="0.5">future adapter</text>
+  <text x="820" y="588" text-anchor="middle" font-size="8" fill="#EF6C00" opacity="0.5">JSON-RPC + session token</text>
+
+  <!-- implements arrow -->
+  <line x1="440" y1="570" x2="478" y2="570" stroke="#E65100" stroke-width="1.5" marker-end="url(#arrow-orange)" stroke-dasharray="4,2"/>
+  <line x1="440" y1="570" x2="478" y2="570" stroke="#E65100" stroke-width="1.5" stroke-dasharray="4,2"/>
+
+  <!-- Factory -->
+  <rect x="240" y="604" width="200" height="0" rx="6" fill="none"/>
+
+  <!-- ====== PERSISTENCE LAYER ====== -->
+  <rect x="220" y="635" width="760" height="130" rx="8" fill="#F3E5F5" stroke="#CE93D8" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="240" y="655" font-size="12" font-weight="700" fill="#6A1B9A">PERSISTENCE LAYER</text>
+  <text x="240" y="668" font-size="9" fill="#7B1FA2">Spring Data JDBC + Flyway migrations</text>
+
+  <rect x="240" y="678" width="160" height="48" rx="6" fill="#E1BEE7" stroke="#BA68C8" stroke-width="1"/>
+  <text x="320" y="698" text-anchor="middle" font-size="10" font-weight="600" fill="#6A1B9A">TorrentRepository</text>
+  <text x="320" y="711" text-anchor="middle" font-size="8" fill="#7B1FA2">torrents table</text>
+
+  <rect x="420" y="678" width="160" height="48" rx="6" fill="#E1BEE7" stroke="#BA68C8" stroke-width="1"/>
+  <text x="500" y="698" text-anchor="middle" font-size="10" font-weight="600" fill="#6A1B9A">NodeRepository</text>
+  <text x="500" y="711" text-anchor="middle" font-size="8" fill="#7B1FA2">nodes table</text>
+
+  <rect x="600" y="678" width="175" height="48" rx="6" fill="#E1BEE7" stroke="#BA68C8" stroke-width="1"/>
+  <text x="687" y="698" text-anchor="middle" font-size="10" font-weight="600" fill="#6A1B9A">StateTransitionRepo</text>
+  <text x="687" y="711" text-anchor="middle" font-size="8" fill="#7B1FA2">state_transitions table</text>
+
+  <rect x="795" y="678" width="170" height="48" rx="6" fill="#E1BEE7" stroke="#BA68C8" stroke-width="1"/>
+  <text x="880" y="698" text-anchor="middle" font-size="10" font-weight="600" fill="#6A1B9A">BandwidthSampleRepo</text>
+  <text x="880" y="711" text-anchor="middle" font-size="8" fill="#7B1FA2">bandwidth_samples hypertable</text>
+
+  <!-- ====== CONFIG ====== -->
+  <rect x="220" y="735" width="760" height="45" rx="6" fill="#EFEBE9" stroke="#BCAAA4" stroke-width="1"/>
+  <text x="240" y="755" font-size="10" font-weight="600" fill="#4E342E">CONFIG</text>
+  <text x="320" y="755" font-size="9" fill="#6D4C41">NisabaProperties (application.yml)</text>
+  <text x="510" y="755" font-size="9" fill="#6D4C41">|  NodeConfig (nodes.yml)</text>
+  <text x="680" y="755" font-size="9" fill="#6D4C41">|  BootGate (503 until reconciled)</text>
+  <text x="880" y="755" font-size="9" fill="#6D4C41">|  WebClientConfig</text>
+
+  <!-- ====== FLOW ARROWS ====== -->
+  <!-- *arr to API -->
+  <line x1="170" y1="110" x2="218" y2="240" stroke="#1976D2" stroke-width="2" marker-end="url(#arrow-blue)"/>
+  <text x="168" y="170" font-size="9" fill="#1976D2" transform="rotate(-68, 168, 170)">qBit API calls</text>
+
+  <!-- API to Service -->
+  <line x1="600" y1="305" x2="600" y2="318" stroke="#666" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Service to Client -->
+  <line x1="600" y1="480" x2="600" y2="498" stroke="#666" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Service to Persistence -->
+  <line x1="400" y1="480" x2="400" y2="633" stroke="#666" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Client to Nodes -->
+  <line x1="982" y1="570" x2="1028" y2="135" stroke="#E65100" stroke-width="2" marker-end="url(#arrow-orange)"/>
+  <text x="1020" y="350" font-size="9" fill="#E65100" transform="rotate(72, 1020, 350)">HTTP / WebClient</text>
+
+  <!-- Persistence to DB -->
+  <line x1="600" y1="765" x2="600" y2="808" stroke="#7B1FA2" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- ====== LEGEND ====== -->
+  <rect x="30" y="810" width="280" height="80" rx="6" fill="#fff" stroke="#E0E0E0" stroke-width="1"/>
+  <text x="45" y="830" font-size="10" font-weight="600" fill="#333">Legend</text>
+  <rect x="45" y="840" width="14" height="10" rx="2" fill="#E3F2FD" stroke="#90CAF9" stroke-width="1"/>
+  <text x="65" y="849" font-size="9" fill="#555">API Layer (inbound)</text>
+  <rect x="155" y="840" width="14" height="10" rx="2" fill="#E8F5E9" stroke="#A5D6A7" stroke-width="1"/>
+  <text x="175" y="849" font-size="9" fill="#555">Service Layer</text>
+  <rect x="45" y="858" width="14" height="10" rx="2" fill="#FFF3E0" stroke="#FFCC80" stroke-width="1"/>
+  <text x="65" y="867" font-size="9" fill="#555">Client Layer (outbound)</text>
+  <rect x="155" y="858" width="14" height="10" rx="2" fill="#F3E5F5" stroke="#CE93D8" stroke-width="1"/>
+  <text x="175" y="867" font-size="9" fill="#555">Persistence Layer</text>
+  <line x1="250" y1="845" x2="280" y2="845" stroke="#999" stroke-width="1" stroke-dasharray="4,2"/>
+  <text x="250" y="868" font-size="9" fill="#555">--- interface</text>
+
+  <!-- ====== CROSS-CUTTING NOTE ====== -->
+  <rect x="880" y="810" width="290" height="80" rx="6" fill="#FFFDE7" stroke="#FFF176" stroke-width="1"/>
+  <text x="895" y="830" font-size="10" font-weight="600" fill="#F57F17">Cross-cutting</text>
+  <text x="895" y="848" font-size="9" fill="#827717">Arrow-kt Either&lt;NisabaError, T&gt; flows through</text>
+  <text x="895" y="862" font-size="9" fill="#827717">Service + Client layers. API folds to HTTP.</text>
+  <text x="895" y="876" font-size="9" fill="#827717">StateMachine validates all state transitions.</text>
+</svg>
