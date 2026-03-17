@@ -7,6 +7,7 @@ import org.springframework.data.repository.CrudRepository
 import java.time.Instant
 
 interface TorrentRepository : CrudRepository<TorrentEntity, String> {
+    fun findByInfohash(infohash: String): TorrentEntity?
     fun findByCategory(category: String): List<TorrentEntity>
 
     @Query("SELECT * FROM torrents WHERE state = CAST(:state AS torrent_state)")
