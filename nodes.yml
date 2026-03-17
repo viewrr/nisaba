@@ -4,4 +4,4 @@ nodes:
     username: admin
     password: adminadmin
     label: "Local Dev Node"
-    client-type: qbittorrent
+    clientType: qbittorrent

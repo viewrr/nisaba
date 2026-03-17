@@ -3,6 +3,8 @@ nisaba:
     username: test
     password: test
   nodes-file: classpath:test-nodes.yml
+  reconciliation:
+    enabled: false
   poll:
     interval-seconds: 30
     stall-threshold-cycles: 2
@@ -14,3 +16,7 @@ nisaba:
     tv-sonarr: /data/media/tv
     radarr: /data/media/movies
     default: /data/media/misc
+
+spring:
+  main:
+    lazy-initialization: true

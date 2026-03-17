@@ -1,0 +1,7 @@
+nodes:
+  - id: test-node
+    url: http://localhost:19999
+    username: test
+    password: test
+    label: "Test Node"
+    clientType: qbittorrent

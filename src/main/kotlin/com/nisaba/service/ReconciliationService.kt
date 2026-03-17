@@ -13,11 +13,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.event.ApplicationReadyEvent
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Service
 
 @Service
+@ConditionalOnProperty(name = ["nisaba.reconciliation.enabled"], matchIfMissing = true)
 class ReconciliationService(
     private val nodeRepository: NodeRepository,
     private val torrentRepository: TorrentRepository,
