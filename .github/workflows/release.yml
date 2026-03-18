@@ -96,20 +96,7 @@ jobs:
       contents: read
       packages: write
 
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_DB: nisaba
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+    # No PostgreSQL service needed - we skip AOT processing for JVM builds
 
     steps:
       - uses: actions/checkout@v4
@@ -124,11 +111,8 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       - name: Build JAR
-        run: ./gradlew bootJar --no-daemon -x test
-        env:
-          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/nisaba
-          SPRING_DATASOURCE_USERNAME: postgres
-          SPRING_DATASOURCE_PASSWORD: postgres
+        run: ./gradlew bootJar --no-daemon -x test -x processAot -x processTestAot
+        # Skip AOT processing for JVM builds - not needed and avoids DB requirement
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
