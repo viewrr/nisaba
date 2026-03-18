@@ -138,8 +138,6 @@ dependencyCheck {
 	suppressionFile = "$projectDir/owasp-suppressions.xml"
 }
 
-// AOT processing uses H2 in-memory database via the 'aot' profile (application-aot.yml).
-// Flyway uses {vendor} placeholder in locations to auto-select migrations:
-//   - classpath:db/migration/h2 during AOT (H2 datasource)
-//   - classpath:db/migration/postgresql at runtime (PostgreSQL datasource)
+// AOT processing uses H2 in-memory database via the 'aot' profile.
+// Migrations are SQL-standard compatible with both H2 and PostgreSQL.
 // Build with: SPRING_PROFILES_ACTIVE=aot ./gradlew nativeCompile

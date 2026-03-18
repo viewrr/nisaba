@@ -1,7 +1,6 @@
 package com.nisaba.config
 
 import com.nisaba.persistence.entity.TorrentState
-import org.postgresql.util.PGobject
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.convert.converter.Converter
 import org.springframework.data.convert.ReadingConverter
@@ -10,7 +9,7 @@ import org.springframework.data.jdbc.repository.config.AbstractJdbcConfiguration
 
 /**
  * Registers custom converters for mapping between Kotlin enums and
- * PostgreSQL custom enum types used in Spring Data JDBC.
+ * database VARCHAR columns used in Spring Data JDBC.
  */
 @Configuration
 class JdbcConfig : AbstractJdbcConfiguration() {
@@ -21,25 +20,22 @@ class JdbcConfig : AbstractJdbcConfiguration() {
     )
 
     /**
-     * Reads a PostgreSQL `torrent_state` enum value (delivered as PGobject)
+     * Reads a VARCHAR state value from the database
      * and converts it to a Kotlin [TorrentState] enum constant.
      */
     @ReadingConverter
-    class TorrentStateReadConverter : Converter<PGobject, TorrentState> {
-        override fun convert(source: PGobject): TorrentState =
-            TorrentState.valueOf(source.value!!.uppercase())
+    class TorrentStateReadConverter : Converter<String, TorrentState> {
+        override fun convert(source: String): TorrentState =
+            TorrentState.valueOf(source.uppercase())
     }
 
     /**
-     * Writes a Kotlin [TorrentState] enum constant as a PostgreSQL
-     * `torrent_state` enum value wrapped in a PGobject.
+     * Writes a Kotlin [TorrentState] enum constant as a lowercase
+     * string for the database VARCHAR column.
      */
     @WritingConverter
-    class TorrentStateWriteConverter : Converter<TorrentState, PGobject> {
-        override fun convert(source: TorrentState): PGobject =
-            PGobject().apply {
-                type = "torrent_state"
-                value = source.name.lowercase()
-            }
+    class TorrentStateWriteConverter : Converter<TorrentState, String> {
+        override fun convert(source: TorrentState): String =
+            source.name.lowercase()
     }
 }

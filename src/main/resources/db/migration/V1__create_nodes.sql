@@ -6,5 +6,5 @@ CREATE TABLE nodes (
     healthy        BOOLEAN NOT NULL DEFAULT false,
     ema_weight     REAL NOT NULL DEFAULT 0.5,
     last_speed_bps BIGINT,
-    last_seen_at   TIMESTAMPTZ
+    last_seen_at   TIMESTAMP WITH TIME ZONE
 );

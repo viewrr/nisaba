@@ -1,9 +1,6 @@
 # AOT processing profile - used during native image compilation.
-# Uses H2 in-memory database with H2-compatible migration scripts.
+# Uses H2 in-memory database with SQL-standard migrations.
 # Flyway stays ENABLED so its beans are included in the AOT output.
-#
-# The {vendor} placeholder in spring.flyway.locations is resolved automatically
-# based on the detected database (h2 during AOT, postgresql at runtime).
 #
 # At runtime, override the datasource via environment variables:
 #   SPRING_DATASOURCE_URL=jdbc:postgresql://host:5432/nisaba
