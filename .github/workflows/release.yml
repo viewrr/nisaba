@@ -44,7 +44,7 @@ jobs:
           build-scan-terms-of-use-agree: "yes"
 
       - name: Build native image
-        run: ./gradlew nativeCompile --no-daemon -x test --build-cache
+        run: ./gradlew clean nativeCompile --no-daemon -x test
         env:
           SPRING_PROFILES_ACTIVE: aot
           # Uses H2 in-memory database for AOT processing (no server needed)
