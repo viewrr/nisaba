@@ -101,7 +101,8 @@ graalvmNative {
 			buildArgs.addAll(
 				"--verbose",
 				"-H:+ReportExceptionStackTraces",
-				"--initialize-at-build-time=org.slf4j.LoggerFactory,ch.qos.logback",
+				"--initialize-at-build-time=org.slf4j",
+				"--initialize-at-build-time=ch.qos.logback",
 				"--initialize-at-run-time=io.netty"
 			)
 		}
