@@ -1,26 +1,26 @@
 [
   {
-    "type": "com.nisaba.NisabaLauncher",
+    "name": "com.nisaba.NisabaLauncher",
     "allDeclaredConstructors": true,
     "allDeclaredMethods": true
   },
   {
-    "type": "com.nisaba.NisabaLauncher__ApplicationContextInitializer",
+    "name": "com.nisaba.NisabaLauncher__ApplicationContextInitializer",
     "allDeclaredConstructors": true,
     "allDeclaredMethods": true
   },
   {
-    "type": "com.nisaba.NisabaLauncher__BeanFactoryRegistrations",
+    "name": "com.nisaba.NisabaLauncher__BeanFactoryRegistrations",
     "allDeclaredConstructors": true,
     "allDeclaredMethods": true
   },
   {
-    "type": "com.nisaba.NisabaLauncher__BeanDefinitions",
+    "name": "com.nisaba.NisabaLauncher__BeanDefinitions",
     "allDeclaredConstructors": true,
     "allDeclaredMethods": true
   },
   {
-    "type": "com.nisaba.NisabaLauncher__EnvironmentPostProcessor",
+    "name": "com.nisaba.NisabaLauncher__EnvironmentPostProcessor",
     "allDeclaredConstructors": true,
     "allDeclaredMethods": true
   }
