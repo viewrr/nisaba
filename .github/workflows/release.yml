@@ -22,8 +22,6 @@ jobs:
       contents: read
       packages: write
 
-    # No PostgreSQL service needed - uses H2 in-memory database for AOT processing
-
     steps:
       - uses: actions/checkout@v4
 
@@ -47,8 +45,6 @@ jobs:
         run: ./gradlew clean nativeCompile --no-daemon -x test -Dorg.gradle.java.installations.auto-detect=false -Dorg.gradle.java.installations.auto-download=false
         env:
           SPRING_PROFILES_ACTIVE: aot
-          JAVA_HOME: ${{ env.GRAALVM_HOME }}
-          # Uses H2 in-memory database for AOT processing (no server needed)
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3

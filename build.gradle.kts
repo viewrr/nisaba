@@ -59,8 +59,9 @@ dependencies {
 	// Database
 	implementation("org.postgresql:postgresql")
 	
-	// H2 for AOT processing (embedded database doesn't require running server)
-	implementation("com.h2database:h2")
+	// H2 for AOT processing only - used during native image compilation
+	// Spring Boot AOT needs a datasource; H2 provides one without a running server
+	runtimeOnly("com.h2database:h2")
 
 	// Configuration processor
 	annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
@@ -137,6 +138,8 @@ dependencyCheck {
 	suppressionFile = "$projectDir/owasp-suppressions.xml"
 }
 
-// Note: AOT processing requires database connection.
-// In CI, use JAVA_TOOL_OPTIONS env var to pass datasource properties to the spawned JVM.
-// Example: JAVA_TOOL_OPTIONS="-Dspring.datasource.url=... -Dspring.datasource.driver-class-name=org.postgresql.Driver"
+// AOT processing uses H2 in-memory database via the 'aot' profile (application-aot.yml).
+// Flyway uses {vendor} placeholder in locations to auto-select migrations:
+//   - classpath:db/migration/h2 during AOT (H2 datasource)
+//   - classpath:db/migration/postgresql at runtime (PostgreSQL datasource)
+// Build with: SPRING_PROFILES_ACTIVE=aot ./gradlew nativeCompile
