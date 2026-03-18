@@ -54,11 +54,10 @@ jobs:
       - name: Build native image
         run: ./gradlew nativeCompile --no-daemon -x test
         env:
-          JAVA_TOOL_OPTIONS: >-
-            -Dspring.datasource.url=jdbc:postgresql://localhost:5432/nisaba
-            -Dspring.datasource.username=postgres
-            -Dspring.datasource.password=postgres
-            -Dspring.datasource.driver-class-name=org.postgresql.Driver
+          SPRING_PROFILES_ACTIVE: aot
+          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/nisaba
+          SPRING_DATASOURCE_USERNAME: postgres
+          SPRING_DATASOURCE_PASSWORD: postgres
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
