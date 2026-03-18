@@ -21,6 +21,7 @@ spring:
     url: jdbc:postgresql://localhost:5432/nisaba
     username: postgres
     password: postgres
+    driver-class-name: org.postgresql.Driver
   flyway:
     enabled: true
     locations: classpath:db/migration
