@@ -99,6 +99,7 @@ graalvmNative {
 	binaries {
 		named("main") {
 			imageName.set("nisaba")
+			mainClass.set("com.nisaba.NisabaApplication")
 			buildArgs.addAll(
 				"--verbose",
 				"-H:+ReportExceptionStackTraces",
@@ -111,7 +112,8 @@ graalvmNative {
 	toolchainDetection.set(false)
 }
 
-// Ensure Spring Boot uses the correct main class for AOT
+// Configure main class for Spring Boot and GraalVM native image
+// Using companion object with @JvmStatic creates main() in NisabaApplication class directly
 springBoot {
 	mainClass.set("com.nisaba.NisabaApplication")
 }
