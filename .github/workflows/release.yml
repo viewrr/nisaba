@@ -30,7 +30,7 @@ jobs:
       - name: Set up GraalVM
         uses: graalvm/setup-graalvm@v1
         with:
-          java-version: '21'
+          java-version: '25'
           distribution: 'graalvm'
           github-token: ${{ secrets.GITHUB_TOKEN }}
           native-image-job-reports: 'true'
@@ -44,9 +44,10 @@ jobs:
           build-scan-terms-of-use-agree: "yes"
 
       - name: Build native image
-        run: ./gradlew clean nativeCompile --no-daemon -x test
+        run: ./gradlew clean nativeCompile --no-daemon -x test -Dorg.gradle.java.installations.auto-detect=false -Dorg.gradle.java.installations.auto-download=false
         env:
           SPRING_PROFILES_ACTIVE: aot
+          JAVA_HOME: ${{ env.GRAALVM_HOME }}
           # Uses H2 in-memory database for AOT processing (no server needed)
 
       - name: Set up Docker Buildx

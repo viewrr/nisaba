@@ -13,9 +13,15 @@ group = "com.nisaba"
 version = "0.0.1-SNAPSHOT"
 
 java {
-	toolchain {
-		languageVersion = JavaLanguageVersion.of(21)
-	}
+	// Use source/target compatibility instead of toolchain to support both
+	// JDK 21 (local dev, JVM CI) and GraalVM 25 (native image CI)
+	sourceCompatibility = JavaVersion.VERSION_21
+	targetCompatibility = JavaVersion.VERSION_21
+}
+
+// Ensure Java compilation targets Java 21 bytecode even on newer JDKs
+tasks.withType<JavaCompile>().configureEach {
+	options.release.set(21)
 }
 
 configurations {
@@ -79,6 +85,7 @@ dependencies {
 kotlin {
 	compilerOptions {
 		freeCompilerArgs.addAll("-Xjsr305=strict", "-Xannotation-default-target=param-property")
+		jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
 	}
 }
 
