@@ -14,6 +14,10 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  * Spring Boot AOT generates initializers based on the @SpringBootApplication
  * annotated class, and runtime looks for initializers based on the class
  * that contains main(). Having both in the same class resolves the mismatch.
+ * 
+ * Additional reflection configuration for the AOT-generated classes is provided
+ * in src/main/resources/META-INF/native-image/com.nisaba/nisaba/reflect-config.json
+ * to ensure unconditional registration (without GraalVM typeReached conditions).
  */
 @SpringBootApplication
 @ConfigurationPropertiesScan
