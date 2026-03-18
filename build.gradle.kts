@@ -106,24 +106,6 @@ graalvmNative {
 	toolchainDetection.set(false)
 }
 
-// Configure AOT processing to use datasource from environment variables
-// This is needed for native image builds where AOT processing requires a running database
-tasks.withType<org.springframework.boot.gradle.tasks.aot.ProcessAot>().configureEach {
-	// Use jvmArgumentProviders for lazy evaluation at execution time
-	jvmArgumentProviders.add(CommandLineArgumentProvider {
-		val datasourceUrl = System.getenv("SPRING_DATASOURCE_URL")
-		val datasourceUsername = System.getenv("SPRING_DATASOURCE_USERNAME") ?: "postgres"
-		val datasourcePassword = System.getenv("SPRING_DATASOURCE_PASSWORD") ?: "postgres"
-		
-		if (!datasourceUrl.isNullOrBlank()) {
-			listOf(
-				"-Dspring.datasource.url=$datasourceUrl",
-				"-Dspring.datasource.username=$datasourceUsername",
-				"-Dspring.datasource.password=$datasourcePassword",
-				"-Dspring.datasource.driver-class-name=org.postgresql.Driver"
-			)
-		} else {
-			emptyList()
-		}
-	})
-}
+// Note: AOT processing requires database connection.
+// In CI, use JAVA_TOOL_OPTIONS env var to pass datasource properties to the spawned JVM.
+// Example: JAVA_TOOL_OPTIONS="-Dspring.datasource.url=... -Dspring.datasource.driver-class-name=org.postgresql.Driver"
