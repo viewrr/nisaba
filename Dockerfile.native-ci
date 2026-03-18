@@ -1,0 +1,32 @@
+# Dockerfile for CI-built native image
+# Used by GitHub Actions after native image is built by Gradle
+
+FROM debian:bookworm-slim
+
+WORKDIR /app
+
+# Install minimal runtime dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy the pre-built native binary from CI
+COPY build/native/nativeCompile/nisaba /app/nisaba
+
+# Copy config files
+COPY nodes.yml /app/nodes.yml
+
+# Create non-root user
+RUN useradd -r -u 1000 nisaba && chown -R nisaba:nisaba /app
+USER nisaba
+
+# Expose the default port
+EXPOSE 8080
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+    CMD curl -f http://localhost:8080/health/live || exit 1
+
+# Run the application
+ENTRYPOINT ["/app/nisaba"]

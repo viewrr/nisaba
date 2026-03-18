@@ -6,6 +6,8 @@
 # Gradle
 .gradle
 build
+!build/native/nativeCompile/nisaba
+!build/libs/*.jar
 !gradle/wrapper/gradle-wrapper.jar
 
 # IDE
