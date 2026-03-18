@@ -8,8 +8,11 @@ import org.springframework.scheduling.annotation.EnableScheduling
 @SpringBootApplication
 @ConfigurationPropertiesScan
 @EnableScheduling
-class NisabaApplication
-
-fun main(args: Array<String>) {
-    runApplication<NisabaApplication>(*args)
+class NisabaApplication {
+    companion object {
+        @JvmStatic
+        fun main(args: Array<String>) {
+            runApplication<NisabaApplication>(*args)
+        }
+    }
 }

@@ -99,7 +99,6 @@ graalvmNative {
 	binaries {
 		named("main") {
 			imageName.set("nisaba")
-			// Don't override mainClass - let Spring Boot AOT set it automatically
 			buildArgs.addAll(
 				"--verbose",
 				"-H:+ReportExceptionStackTraces",
@@ -110,6 +109,11 @@ graalvmNative {
 		}
 	}
 	toolchainDetection.set(false)
+}
+
+// Ensure Spring Boot uses the correct main class for AOT
+springBoot {
+	mainClass.set("com.nisaba.NisabaApplication")
 }
 
 // Detekt configuration
