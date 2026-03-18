@@ -1,6 +1,13 @@
 .superpowers/
 .gradle/
 build/
+bin/
 .idea/
 *.iml
 postgres_data/
+
+# Eclipse
+.classpath
+.project
+.settings/
+.factorypath

@@ -99,7 +99,7 @@ graalvmNative {
 	binaries {
 		named("main") {
 			imageName.set("nisaba")
-			mainClass.set("com.nisaba.NisabaApplication")
+			mainClass.set("com.nisaba.NisabaLauncher")
 			buildArgs.addAll(
 				"--verbose",
 				"-H:+ReportExceptionStackTraces",
@@ -113,9 +113,9 @@ graalvmNative {
 }
 
 // Configure main class for Spring Boot and GraalVM native image
-// Using companion object with @JvmStatic creates main() in NisabaApplication class directly
+// Using a Java launcher class avoids Kotlin companion object naming issues
 springBoot {
-	mainClass.set("com.nisaba.NisabaApplication")
+	mainClass.set("com.nisaba.NisabaLauncher")
 }
 
 // Detekt configuration
