@@ -3,6 +3,7 @@ plugins {
 	kotlin("plugin.spring") version "2.2.21"
 	id("org.springframework.boot") version "4.0.3"
 	id("io.spring.dependency-management") version "1.1.7"
+	jacoco
 }
 
 group = "com.nisaba"
@@ -65,6 +66,7 @@ dependencies {
 	testImplementation("io.kotest:kotest-assertions-core:6.0.0.M2")
 	testImplementation("io.kotest.extensions:kotest-extensions-spring:1.3.0")
 	testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
+	testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
@@ -76,4 +78,13 @@ kotlin {
 
 tasks.withType<Test> {
 	useJUnitPlatform()
+	finalizedBy(tasks.jacocoTestReport)
+}
+
+tasks.jacocoTestReport {
+	dependsOn(tasks.test)
+	reports {
+		xml.required.set(true)
+		html.required.set(true)
+	}
 }
