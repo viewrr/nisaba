@@ -105,3 +105,18 @@ graalvmNative {
 	}
 	toolchainDetection.set(false)
 }
+
+// Configure AOT processing to use datasource from environment variables
+tasks.withType<org.springframework.boot.gradle.tasks.aot.ProcessAot> {
+	val datasourceUrl = System.getenv("SPRING_DATASOURCE_URL")
+	val datasourceUsername = System.getenv("SPRING_DATASOURCE_USERNAME")
+	val datasourcePassword = System.getenv("SPRING_DATASOURCE_PASSWORD")
+
+	if (datasourceUrl != null) {
+		jvmArgs(
+			"-Dspring.datasource.url=$datasourceUrl",
+			"-Dspring.datasource.username=${datasourceUsername ?: "postgres"}",
+			"-Dspring.datasource.password=${datasourcePassword ?: "postgres"}"
+		)
+	}
+}
