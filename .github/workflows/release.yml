@@ -22,20 +22,7 @@ jobs:
       contents: read
       packages: write
 
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_DB: nisaba
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+    # No PostgreSQL service needed - uses H2 in-memory database for AOT processing
 
     steps:
       - uses: actions/checkout@v4
@@ -55,9 +42,7 @@ jobs:
         run: ./gradlew nativeCompile --no-daemon -x test
         env:
           SPRING_PROFILES_ACTIVE: aot
-          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/nisaba
-          SPRING_DATASOURCE_USERNAME: postgres
-          SPRING_DATASOURCE_PASSWORD: postgres
+          # Uses H2 in-memory database for AOT processing (no server needed)
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3

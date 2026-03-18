@@ -1,11 +1,14 @@
 # AOT processing profile - used during native image compilation
-# This provides default datasource configuration for the AOT processor
+# Uses H2 in-memory database since AOT processing doesn't need a real database
 
 spring:
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/nisaba}
-    username: ${SPRING_DATASOURCE_USERNAME:postgres}
-    password: ${SPRING_DATASOURCE_PASSWORD:postgres}
-    driver-class-name: org.postgresql.Driver
+    url: jdbc:h2:mem:nisaba;DB_CLOSE_DELAY=-1;MODE=PostgreSQL
+    username: sa
+    password: 
+    driver-class-name: org.h2.Driver
   flyway:
-    enabled: true
+    enabled: false  # Skip Flyway during AOT - migrations are PostgreSQL-specific
+  sql:
+    init:
+      mode: never

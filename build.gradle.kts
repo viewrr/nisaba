@@ -50,6 +50,9 @@ dependencies {
 
 	// Database
 	implementation("org.postgresql:postgresql")
+	
+	// H2 for AOT processing (embedded database doesn't require running server)
+	implementation("com.h2database:h2")
 
 	// Configuration processor
 	annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
