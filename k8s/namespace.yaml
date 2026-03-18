@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: nisaba
+  labels:
+    app.kubernetes.io/name: nisaba
+    app.kubernetes.io/part-of: nisaba

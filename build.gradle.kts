@@ -4,6 +4,8 @@ plugins {
 	id("org.springframework.boot") version "4.0.3"
 	id("io.spring.dependency-management") version "1.1.7"
 	id("org.graalvm.buildtools.native") version "0.10.6"
+	id("io.gitlab.arturbosch.detekt") version "1.23.7"
+	id("org.owasp.dependencycheck") version "12.1.1"
 	jacoco
 }
 
@@ -97,7 +99,7 @@ graalvmNative {
 	binaries {
 		named("main") {
 			imageName.set("nisaba")
-			mainClass.set("com.nisaba.NisabaApplicationKt")
+			// Don't override mainClass - let Spring Boot AOT set it automatically
 			buildArgs.addAll(
 				"--verbose",
 				"-H:+ReportExceptionStackTraces",
@@ -108,6 +110,18 @@ graalvmNative {
 		}
 	}
 	toolchainDetection.set(false)
+}
+
+// Detekt configuration
+detekt {
+	buildUponDefaultConfig = true
+	config.setFrom(files("$projectDir/detekt.yml"))
+}
+
+// OWASP Dependency Check configuration
+dependencyCheck {
+	failBuildOnCVSS = 9.0f  // Only fail on critical vulnerabilities
+	suppressionFile = "$projectDir/owasp-suppressions.xml"
 }
 
 // Note: AOT processing requires database connection.

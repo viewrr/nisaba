@@ -14,7 +14,9 @@ services:
       retries: 5
 
   nisaba:
-    image: ghcr.io/viewrr/nisaba:v0.1.0-jvm
+    build:
+      context: .
+      dockerfile: Dockerfile.jvm
     ports:
       - "8081:8080"
     environment:

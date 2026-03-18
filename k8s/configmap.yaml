@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nisaba-config
+  namespace: nisaba
+  labels:
+    app.kubernetes.io/name: nisaba
+data:
+  # Category to save path mapping
+  NISABA_CATEGORIES_TV_SONARR: "/data/media/tv"
+  NISABA_CATEGORIES_RADARR: "/data/media/movies"
+  NISABA_CATEGORIES_DEFAULT: "/data/media/misc"
+  
+  # Database configuration
+  SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres:5432/nisaba"
+  
+  # Sync intervals
+  NISABA_SYNC_INTERVAL_SECONDS: "30"
+  NISABA_HEALTH_CHECK_INTERVAL_SECONDS: "30"
+  
+  # Node configuration file
+  nodes.yml: |
+    nodes: []
+    # Example node configuration:
+    # nodes:
+    #   - id: node-a
+    #     baseUrl: http://node-a.mesh:8080
+    #     label: "Primary Node"
+    #     clientType: qbittorrent
+    #     credentials:
+    #       username: admin
+    #       password: ${NODE_A_PASSWORD}  # Reference secret
