@@ -1,6 +1,7 @@
 package com.nisaba.persistence.entity
 
 import org.springframework.data.annotation.Id
+import org.springframework.data.annotation.PersistenceCreator
 import org.springframework.data.annotation.Transient
 import org.springframework.data.domain.Persistable
 import org.springframework.data.relational.core.mapping.Table
@@ -26,6 +27,28 @@ data class TorrentEntity(
     val createdAt: Instant = Instant.now(),
     @Transient val isNewEntity: Boolean = true
 ) : Persistable<String> {
+    
+    @PersistenceCreator
+    constructor(
+        infohash: String,
+        name: String?,
+        magnetUri: String,
+        category: String?,
+        savePath: String,
+        state: TorrentState,
+        assignedNodeId: String?,
+        progressPct: Float,
+        totalSize: Long?,
+        contentPath: String?,
+        eta: Long?,
+        ratio: Float?,
+        seedingTime: Long?,
+        piecesBitmap: ByteArray?,
+        lastSyncedAt: Instant?,
+        createdAt: Instant
+    ) : this(infohash, name, magnetUri, category, savePath, state, assignedNodeId, progressPct, 
+             totalSize, contentPath, eta, ratio, seedingTime, piecesBitmap, lastSyncedAt, createdAt, false)
+    
     override fun getId(): String = infohash
     override fun isNew(): Boolean = isNewEntity
 
