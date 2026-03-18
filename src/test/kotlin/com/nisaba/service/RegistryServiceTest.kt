@@ -70,7 +70,7 @@ class RegistryServiceTest {
     }
 
     @Test
-    fun `addTorrent returns AlreadyExists when torrent already in registry`() = runBlocking {
+    fun `addTorrent returns AlreadyExists when torrent already in registry`(): Unit = runBlocking {
         every { torrentRepository.findByInfohash("abc123") } returns torrent()
 
         val result = registryService.addTorrent(
@@ -83,6 +83,7 @@ class RegistryServiceTest {
 
         result.isLeft() shouldBe true
         result.leftOrNull().shouldBeInstanceOf<NisabaError.AlreadyExists>()
+        Unit
     }
 
     @Test
@@ -138,7 +139,7 @@ class RegistryServiceTest {
     }
 
     @Test
-    fun `addTorrent fails when no healthy nodes available`() = runBlocking {
+    fun `addTorrent fails when no healthy nodes available`(): Unit = runBlocking {
         every { torrentRepository.findByInfohash("abc123") } returns null
         every { torrentRepository.save(any<TorrentEntity>()) } answers { firstArg() }
         every { routerService.selectNode() } returns NisabaError.NoHealthyNodes("No nodes").left()
@@ -153,6 +154,7 @@ class RegistryServiceTest {
 
         result.isLeft() shouldBe true
         result.leftOrNull().shouldBeInstanceOf<NisabaError.NoHealthyNodes>()
+        Unit
     }
 
     @Test
@@ -184,13 +186,14 @@ class RegistryServiceTest {
     }
 
     @Test
-    fun `removeTorrent returns TorrentNotFound when torrent does not exist`() = runBlocking {
+    fun `removeTorrent returns TorrentNotFound when torrent does not exist`(): Unit = runBlocking {
         every { torrentRepository.findByInfohash("unknown") } returns null
 
         val result = registryService.removeTorrent("unknown", deleteFiles = false)
 
         result.isLeft() shouldBe true
         result.leftOrNull().shouldBeInstanceOf<NisabaError.TorrentNotFound>()
+        Unit
     }
 
     @Test

@@ -1,0 +1,23 @@
+# JVM-based Dockerfile for faster builds during development
+# Use native Dockerfile for production
+
+FROM eclipse-temurin:21-jre-alpine
+
+WORKDIR /app
+
+# Create non-root user
+RUN addgroup -g 1000 nisaba && adduser -u 1000 -G nisaba -D nisaba
+
+# Copy the built JAR (build with: ./gradlew bootJar)
+COPY build/libs/nisaba-*.jar /app/nisaba.jar
+COPY nodes.yml /app/nodes.yml
+
+RUN chown -R nisaba:nisaba /app
+USER nisaba
+
+EXPOSE 8080
+
+HEALTHCHECK --interval=30s --timeout=3s --start-period=30s --retries=3 \
+    CMD wget --no-verbose --tries=1 --spider http://localhost:8080/health/live || exit 1
+
+ENTRYPOINT ["java", "-jar", "/app/nisaba.jar"]

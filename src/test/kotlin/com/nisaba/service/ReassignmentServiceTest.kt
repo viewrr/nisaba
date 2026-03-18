@@ -70,13 +70,14 @@ class ReassignmentServiceTest {
     }
 
     @Test
-    fun `reassign returns TorrentNotFound when torrent does not exist`() = runBlocking {
+    fun `reassign returns TorrentNotFound when torrent does not exist`(): Unit = runBlocking {
         every { torrentRepository.findByInfohash("unknown") } returns null
 
         val result = reassignmentService.reassign("unknown")
 
         result.isLeft() shouldBe true
         result.leftOrNull().shouldBeInstanceOf<NisabaError.TorrentNotFound>()
+        Unit
     }
 
     @Test
@@ -154,7 +155,7 @@ class ReassignmentServiceTest {
     }
 
     @Test
-    fun `reassign continues even if pause on old node fails`() = runBlocking {
+    fun `reassign continues even if pause on old node fails`(): Unit = runBlocking {
         val oldNode = node("old-node")
         val newNode = node("new-node")
         val t = torrent()
@@ -173,6 +174,7 @@ class ReassignmentServiceTest {
         val result = reassignmentService.reassign("abc123")
 
         result.isRight() shouldBe true
+        Unit
     }
 
     @Test

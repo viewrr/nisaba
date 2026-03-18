@@ -3,6 +3,7 @@ plugins {
 	kotlin("plugin.spring") version "2.2.21"
 	id("org.springframework.boot") version "4.0.3"
 	id("io.spring.dependency-management") version "1.1.7"
+	id("org.graalvm.buildtools.native") version "0.10.6"
 	jacoco
 }
 
@@ -87,4 +88,20 @@ tasks.jacocoTestReport {
 		xml.required.set(true)
 		html.required.set(true)
 	}
+}
+
+graalvmNative {
+	binaries {
+		named("main") {
+			imageName.set("nisaba")
+			mainClass.set("com.nisaba.NisabaApplicationKt")
+			buildArgs.addAll(
+				"--verbose",
+				"-H:+ReportExceptionStackTraces",
+				"--initialize-at-build-time=org.slf4j.LoggerFactory,ch.qos.logback",
+				"--initialize-at-run-time=io.netty"
+			)
+		}
+	}
+	toolchainDetection.set(false)
 }

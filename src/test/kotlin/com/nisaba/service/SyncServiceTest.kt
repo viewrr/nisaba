@@ -170,10 +170,11 @@ class SyncServiceTest {
 
         verify { stateMachine.transition("abc123", TorrentState.DOWNLOADING, any(), any()) }
         syncService.stallCounters["abc123"] shouldBe null
+        Unit
     }
 
     @Test
-    fun `syncLoop triggers reassignment when torrent not found on node`() = runBlocking {
+    fun `syncLoop triggers reassignment when torrent not found on node`(): Unit = runBlocking {
         val node1 = node("node-1")
         val t = torrent(state = TorrentState.DOWNLOADING)
 
@@ -225,10 +226,11 @@ class SyncServiceTest {
         syncService.syncLoop()
 
         syncService.stallCounters["abc123"] shouldBe 1
+        Unit
     }
 
     @Test
-    fun `syncLoop marks STALLED after threshold cycles`() = runBlocking {
+    fun `syncLoop marks STALLED after threshold cycles`(): Unit = runBlocking {
         val node1 = node("node-1")
         val t = torrent(state = TorrentState.DOWNLOADING)
         val stalledStatus = torrentStatus(speedBps = 0L, progress = 0.5f)
@@ -268,10 +270,11 @@ class SyncServiceTest {
         syncService.syncLoop()
 
         syncService.stallCounters["abc123"] shouldBe null
+        Unit
     }
 
     @Test
-    fun `syncLoop handles failed node poll gracefully`() = runBlocking {
+    fun `syncLoop handles failed node poll gracefully`(): Unit = runBlocking {
         val node1 = node("node-1")
         val node2 = node("node-2")
 
