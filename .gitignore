@@ -11,3 +11,6 @@ postgres_data/
 .project
 .settings/
 .factorypath
+
+# Local build cache
+.gradle/build-cache/

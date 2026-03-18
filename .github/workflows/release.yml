@@ -37,9 +37,14 @@ jobs:
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: false
+          build-scan-publish: true
+          build-scan-terms-of-use-url: "https://gradle.com/help/legal-terms-of-use"
+          build-scan-terms-of-use-agree: "yes"
 
       - name: Build native image
-        run: ./gradlew nativeCompile --no-daemon -x test
+        run: ./gradlew nativeCompile --no-daemon -x test --build-cache
         env:
           SPRING_PROFILES_ACTIVE: aot
           # Uses H2 in-memory database for AOT processing (no server needed)
@@ -95,9 +100,13 @@ jobs:
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
+        with:
+          build-scan-publish: true
+          build-scan-terms-of-use-url: "https://gradle.com/help/legal-terms-of-use"
+          build-scan-terms-of-use-agree: "yes"
 
       - name: Build JAR
-        run: ./gradlew bootJar --no-daemon -x test -x processAot -x processTestAot
+        run: ./gradlew bootJar --no-daemon -x test -x processAot -x processTestAot --build-cache
         # Skip AOT processing for JVM builds - not needed and avoids DB requirement
 
       - name: Set up Docker Buildx

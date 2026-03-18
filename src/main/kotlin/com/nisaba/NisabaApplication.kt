@@ -1,18 +1,13 @@
 package com.nisaba
 
-import org.springframework.boot.autoconfigure.SpringBootApplication
-import org.springframework.boot.context.properties.ConfigurationPropertiesScan
-import org.springframework.scheduling.annotation.EnableScheduling
-
 /**
- * Main Spring Boot application class.
+ * Legacy application class - kept for compatibility.
  * 
- * The application entry point is in NisabaLauncher.java to ensure
- * proper AOT initializer class naming for GraalVM native images.
+ * The actual Spring Boot application is now NisabaLauncher.java which
+ * contains both @SpringBootApplication and main() to ensure proper
+ * AOT initializer class naming for GraalVM native images.
  * 
  * @see NisabaLauncher
  */
-@SpringBootApplication
-@ConfigurationPropertiesScan
-@EnableScheduling
+@Deprecated("Use NisabaLauncher instead", ReplaceWith("NisabaLauncher"))
 open class NisabaApplication
